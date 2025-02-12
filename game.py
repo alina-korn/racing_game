@@ -9,6 +9,7 @@ FPS = 60
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+BLUE = (0, 0, 255)
 
 # Инициализация pygame
 pygame.init()
@@ -41,12 +42,31 @@ class Road:
     def draw(self, screen):
         pygame.draw.rect(screen, BLACK, self.road_rect)
 
+# Класс препятствий
+class Obstacle:
+    def __init__(self):
+        self.image = pygame.Surface((50, 80))
+        self.image.fill(BLUE)
+        self.rect = self.image.get_rect(center=(random.randint(225, 575), -100))
+        self.speed = 5
+    
+    def move(self):
+        self.rect.y += self.speed
+    
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+    
+    def off_screen(self):
+        return self.rect.top > HEIGHT
+
 # Основной игровой цикл
 def game_loop():
     car = Car()
     road = Road()
-    running = True
+    obstacles = []
+    obstacle_timer = 0
     
+    running = True
     while running:
         screen.fill(WHITE)
         road.draw(screen)
@@ -54,6 +74,17 @@ def game_loop():
         
         keys = pygame.key.get_pressed()
         car.move(keys)
+        
+        if obstacle_timer > 50:
+            obstacles.append(Obstacle())
+            obstacle_timer = 0
+        obstacle_timer += 1
+        
+        for obstacle in obstacles[:]:
+            obstacle.move()
+            obstacle.draw(screen)
+            if obstacle.off_screen():
+                obstacles.remove(obstacle)
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -66,3 +97,4 @@ def game_loop():
 
 if __name__ == "__main__":
     game_loop()
+
