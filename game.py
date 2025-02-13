@@ -16,6 +16,7 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Simple Racing Game")
 clock = pygame.time.Clock()
+font = pygame.font.Font(None, 36)
 
 # Класс машины
 class Car:
@@ -24,12 +25,14 @@ class Car:
         self.image.fill(RED)
         self.rect = self.image.get_rect(center=(WIDTH // 2, HEIGHT - 100))
         self.speed = 5
+        self.alive = True
     
     def move(self, keys):
-        if keys[pygame.K_LEFT] and self.rect.left > 200:
-            self.rect.x -= self.speed
-        if keys[pygame.K_RIGHT] and self.rect.right < 600:
-            self.rect.x += self.speed
+        if self.alive:
+            if keys[pygame.K_LEFT] and self.rect.left > 200:
+                self.rect.x -= self.speed
+            if keys[pygame.K_RIGHT] and self.rect.right < 600:
+                self.rect.x += self.speed
     
     def draw(self, screen):
         screen.blit(self.image, self.rect)
@@ -65,6 +68,8 @@ def game_loop():
     road = Road()
     obstacles = []
     obstacle_timer = 0
+    avoided = 0
+    crashed = 0
     
     running = True
     while running:
@@ -83,8 +88,17 @@ def game_loop():
         for obstacle in obstacles[:]:
             obstacle.move()
             obstacle.draw(screen)
+            
             if obstacle.off_screen():
                 obstacles.remove(obstacle)
+                avoided += 1
+            
+            if car.rect.colliderect(obstacle.rect) and car.alive:
+                car.alive = False
+                crashed += 1
+        
+        score_text = font.render(f"Avoided: {avoided}  Crashed: {crashed}", True, BLACK)
+        screen.blit(score_text, (10, 10))
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -97,4 +111,3 @@ def game_loop():
 
 if __name__ == "__main__":
     game_loop()
-
